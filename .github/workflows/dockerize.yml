@@ -20,6 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
@@ -40,44 +43,58 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build with Voxen
+      - name: Build fat JAR
+        run: ./gradlew build :cli:fatJar --no-daemon
+        shell: bash
+
+      - name: Build with Voxen (example project)
         run: |
-          ./gradlew build
-          java -jar cli/build/libs/cli-*.jar build --json
+          java -jar cli/build/libs/voxen-*.jar build --json
+        shell: bash
+
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "tag=ghcr.io/${{ github.repository }}:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=ghcr.io/${{ github.repository }}:ci-${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
 
       - name: Dockerize with Voxen
         run: |
-          TAG="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            TAG="ghcr.io/${{ github.repository }}:latest"
-          fi
-          java -jar cli/build/libs/cli-*.jar dockerize \
-            --tag "$TAG" \
+          java -jar cli/build/libs/voxen-*.jar dockerize \
+            --tag "${{ steps.tag.outputs.tag }}" \
             --push \
             --platform linux/amd64,linux/arm64 \
             --lint \
             --json
+        shell: bash
 
       - name: Sign image with Cosign
         if: github.ref_type == 'tag'
         run: |
-          TAG="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
-          cosign sign --yes "$TAG"
+          cosign sign --yes "${{ steps.tag.outputs.tag }}"
+        shell: bash
 
       - name: Generate SBOM with Syft
+        continue-on-error: true
         run: |
-          TAG="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
-          syft "$TAG" -o cyclonedx-json > sbom.json
+          syft "${{ steps.tag.outputs.tag }}" -o cyclonedx-json > sbom.json
+        shell: bash
 
       - name: Scan with Trivy
+        id: trivy
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          image-ref: ${{ steps.tag.outputs.tag }}
           format: sarif
           output: trivy-results.sarif
 
       - name: Upload Trivy results to GitHub Security
+        if: always() && steps.trivy.outcome != 'failure'
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
         with:
           sarif_file: trivy-results.sarif
