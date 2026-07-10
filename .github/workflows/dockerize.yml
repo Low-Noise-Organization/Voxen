@@ -15,6 +15,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      security-events: write
 
     steps:
       - name: Checkout
@@ -47,9 +48,9 @@ jobs:
         run: ./gradlew build :cli:fatJar --no-daemon
         shell: bash
 
-      - name: Build with Voxen (example project)
+      - name: Show Voxen info
         run: |
-          java -jar cli/build/libs/voxen-*.jar build --json
+          java -jar cli/build/libs/voxen-*.jar info --json
         shell: bash
 
       - name: Determine image tag
