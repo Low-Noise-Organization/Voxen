@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plugins — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html" class="active">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Guía de Plugins</h1>
+<p class="section-subtitle">Voxen usa dos sistemas de plugins: <strong>RuntimePlugin</strong> para detección de lenguajes y <strong>Plugin (SPI)</strong> para build/publicación. También puedes crear publicadores personalizados.</p>
+
+<section>
+  <h2>Plugins de Runtime (Multi-Lenguaje)</h2>
+  <p>Los <code>RuntimePlugin</code> detectan automáticamente el lenguaje del proyecto y proporcionan el comando de build y la imagen Docker base.</p>
+
+  <h3>Plugins Incluidos</h3>
+  <table>
+    <tr><th>Plugin</th><th>Detección</th><th>Comando de Build</th><th>Imagen Base Docker</th></tr>
+    <tr><td>JavaRuntimePlugin</td><td>pom.xml / build.gradle</td><td>mvn package / gradle build</td><td>gcr.io/distroless/java21-debian12</td></tr>
+    <tr><td>NodeRuntimePlugin</td><td>package.json</td><td>npm run build</td><td>gcr.io/distroless/nodejs20-debian12</td></tr>
+    <tr><td>PythonRuntimePlugin</td><td>setup.py / pyproject.toml</td><td>python -m build</td><td>python:3.11-slim</td></tr>
+    <tr><td>GoRuntimePlugin</td><td>go.mod</td><td>go build -o dist/</td><td>gcr.io/distroless/static-debian12</td></tr>
+    <tr><td>RustRuntimePlugin</td><td>Cargo.toml</td><td>cargo build --release</td><td>gcr.io/distroless/cc</td></tr>
+    <tr><td>DotNetRuntimePlugin</td><td>.csproj / .fsproj</td><td>dotnet publish</td><td>mcr.microsoft.com/dotnet/aspnet:8.0</td></tr>
+  </table>
+
+  <h3>Interfaz RuntimePlugin</h3>
+  <pre><code>public interface RuntimePlugin {
+    String runtime();                           // nombre del lenguaje
+    boolean detect(Path projectDir);            // detecta si aplica a este proyecto
+    String buildCommand(Path projectDir);       // comando para construir
+    String defaultArtifactPattern();            // patrón de artefactos generados
+    String buildImage();                        // imagen base Docker
+}</code></pre>
+
+  <h3>Añadir un RuntimePlugin nuevo</h3>
+  <pre><code>public class RubyRuntimePlugin implements RuntimePlugin {
+    @Override
+    public String runtime() { return "ruby"; }
+
+    @Override
+    public boolean detect(Path projectDir) {
+        return projectDir.resolve("Gemfile").toFile().exists();
+    }
+
+    @Override
+    public String buildCommand(Path projectDir) {
+        return "bundle exec rake build";
+    }
+
+    @Override
+    public String defaultArtifactPattern() {
+        return "pkg/*.gem";
+    }
+
+    @Override
+    public String buildImage() {
+        return "ruby:3.3-slim";
+    }
+}</code></pre>
+</section>
+
+<section>
+  <h2>Plugins de Build (SPI)</h2>
+  <p>Los plugins de build implementan la interfaz <code>Plugin</code> y se registran via <code>ServiceLoader</code>. Controlan el ciclo de vida completo: build, package, publish, deploy.</p>
+
+  <h3>Interfaz Plugin</h3>
+  <pre><code>public interface Plugin {
+    String name();
+    String language();
+    Set&lt;PluginType&gt; supportedTypes();
+    default String apiVersion() { return "1.0"; }
+
+    void init(PluginContext context);
+    BuildResult build(PluginContext context);
+    PackageResult packageArtifact(PluginContext context);
+    PublishResult publish(PluginContext context);
+    DeployResult deploy(PluginContext context);
+}</code></pre>
+
+  <h3>Crear un Plugin de Build</h3>
+  <ol class="steps">
+    <li><strong>Crea un módulo Java</strong> que dependa de <code>voxen-plugins-api</code></li>
+    <li><strong>Implementa la interfaz Plugin</strong> con los 5 métodos del ciclo de vida</li>
+    <li><strong>Regístrate via ServiceLoader:</strong> crea <code>META-INF/services/io.lownoise.voxen.plugins.api.Plugin</code> con el nombre completo de tu clase</li>
+    <li><strong>Compila y prueba:</strong> <code>java -cp voxen.jar:tu-plugin.jar io.lownoise.voxen.cli.VoxenCli info</code></li>
+  </ol>
+</section>
+
+<section>
+  <h2>Resultados del Ciclo de Vida</h2>
+  <p>Cada método del plugin devuelve un tipo de resultado específico:</p>
+
+  <table>
+    <tr><th>Método</th><th>Resultado</th><th>Campos Clave</th></tr>
+    <tr><td><code>build()</code></td><td><code>BuildResult</code></td><td>success, artifacts (List&lt;Path&gt;), durationMs, output</td></tr>
+    <tr><td><code>packageArtifact()</code></td><td><code>PackageResult</code></td><td>success, packagePath, format, sizeBytes, output</td></tr>
+    <tr><td><code>publish()</code></td><td><code>PublishResult</code></td><td>success, targetRepository, artifactUrl, output</td></tr>
+    <tr><td><code>deploy()</code></td><td><code>DeployResult</code></td><td>success, targetEnvironment, deploymentUrl, output</td></tr>
+  </table>
+
+  <p>Métodos factoría para resultados:</p>
+  <pre><code>// Éxito
+BuildResult.success(List.of(paths), durationMs, "mensaje")
+PackageResult.success(path, "jar", fileSize, "mensaje")
+PublishResult.success("maven-central", "https://...", "mensaje")
+DeployResult.success("staging", "https://...", "mensaje")
+
+// Fallo
+BuildResult.failure("Mensaje de error")
+PackageResult.failure("Mensaje de error")
+PublishResult.failure("Mensaje de error")
+DeployResult.failure("Mensaje de error")</code></pre>
+</section>
+
+<section>
+  <h2>Publicadores Personalizados</h2>
+  <p>Además de los 6 publicadores incluidos (local, maven-central, artifactory, nexus, s3, docker), puedes crear los tuyos:</p>
+
+  <pre><code>public class GitHubPackagesPublisher implements Publisher {
+    @Override
+    public String name() { return "github-packages"; }
+
+    @Override
+    public PublishResult publish(Path artifact, String repository,
+                                  String groupId, String artifactId, String version) {
+        // Implementar subida a GitHub Packages
+        return PublishResult.success(repository, url, "Published to GitHub Packages");
+    }
+}</code></pre>
+  <p>Los publicadores se auto-registran vía <code>PublisherFactory.register()</code> al estar en el classpath.</p>
+</section>
+
+<section>
+  <h2>PluginContext API</h2>
+  <p>Los plugins reciben un objeto <code>PluginContext</code> con información del entorno:</p>
+
+  <pre><code>public interface PluginContext {
+    Path workingDirectory();     // Raíz del proyecto
+    Path outputDirectory();      // Directorio de salida (default: dist)
+    boolean verbose();           // Flag --verbose
+    boolean debug();             // Flag --debug
+    void log(String message);    // Salida normal
+    void verbose(String msg);    // Salida verbose
+    void debug(String msg);      // Salida debug
+    void error(String message);  // Salida de error
+}</code></pre>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

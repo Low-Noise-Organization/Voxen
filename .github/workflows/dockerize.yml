@@ -1,0 +1,83 @@
+name: Voxen Dockerize CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-dockerize:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build with Voxen
+        run: |
+          ./gradlew build
+          java -jar cli/build/libs/cli-*.jar build --json
+
+      - name: Dockerize with Voxen
+        run: |
+          TAG="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            TAG="ghcr.io/${{ github.repository }}:latest"
+          fi
+          java -jar cli/build/libs/cli-*.jar dockerize \
+            --tag "$TAG" \
+            --push \
+            --platform linux/amd64,linux/arm64 \
+            --lint \
+            --json
+
+      - name: Sign image with Cosign
+        if: github.ref_type == 'tag'
+        run: |
+          TAG="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          cosign sign --yes "$TAG"
+
+      - name: Generate SBOM with Syft
+        run: |
+          TAG="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          syft "$TAG" -o cyclonedx-json > sbom.json
+
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif

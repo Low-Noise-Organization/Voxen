@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voxen — Plataforma Universal de Empaquetado y Supply Chain</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <h1>Construye. Empaqueta.<br>Distribuye. <span class="highlight">Dockeriza.</span></h1>
+  <p>Una sola herramienta para construir, empaquetar, firmar, generar SBOM, dockerizar y publicar cualquier proyecto — sin importar el lenguaje o framework.</p>
+  <div class="buttons">
+    <a href="install.html" class="btn btn-primary">Instalar Voxen</a>
+    <a href="quickstart.html" class="btn btn-secondary">Inicio Rápido</a>
+  </div>
+</section>
+
+<div class="container">
+
+<section>
+  <h2 class="section-title">¿Qué es Voxen?</h2>
+  <p class="section-subtitle">Voxen es un <strong>orquestador de builds</strong> y <strong>capa de supply chain</strong> para Docker. Unifica la construcción, empaquetado, firma, generación de SBOM, dockerizado y publicación en una sola interfaz de línea de comandos.</p>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="icon">🔧</div>
+      <h3>Multi-Lenguaje</h3>
+      <p>Funciona con Java, Kotlin, Node.js, Python, Go, Rust y .NET mediante un sistema de plugins. Detecta automáticamente el runtime de tu proyecto.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📦</div>
+      <h3>Empaquetado Universal</h3>
+      <p>Empaqueta como JAR, WAR, ZIP, wheel, DLL o binario nativo — todo con un solo comando: <code>voxen package</code>.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🐳</div>
+      <h3>Dockeriza Automático</h3>
+      <p>Genera imágenes Docker óptimas y mínimas con un solo comando. <code>voxen dockerize</code> produce imágenes multi-architecture con SBOM, checksums y firma embebidos.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔒</div>
+      <h3>Supply Chain Completa</h3>
+      <p>Firma GPG, checksums SHA-256/512/MD5, SBOM CycloneDX, SLSA provenance, y etiquetas OCI — todo generado automáticamente en cada build.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🌐</div>
+      <h3>Multi-Idioma</h3>
+      <p>Soporte nativo para 6 runtimes con imágenes base óptimas para cada uno: distroless, alpine slim, y más. Plugins para Java, Node, Python, Go, Rust y .NET.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🚀</div>
+      <h3>Pipeline CI/CD Listo</h3>
+      <p>Workflows oficiales de GitHub Actions, un comando <code>--json</code> para integración con cualquier pipeline, y acción reutilizable <code>voxen-build-push</code>.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">¿Cómo funciona?</h2>
+  <p class="section-subtitle">Voxen sigue el ciclo de vida completo: desde el código fuente hasta la imagen Docker en el registry, pasando por calidad, seguridad y trazabilidad.</p>
+
+  <ol class="steps">
+    <li><strong>Inicializa tu proyecto</strong> — <code>voxen init --runtime java</code> crea un <code>voxen.json</code> con validación automática contra JSON Schema.</li>
+    <li><strong>Construye</strong> — <code>voxen build</code> detecta el build tool (Maven, Gradle, npm, cargo, etc.) y lo ejecuta. Cada operación queda registrada en el audit log.</li>
+    <li><strong>Empaqueta</strong> — <code>voxen package</code> produce el artefacto distribuible. Se generan automáticamente checksums SHA-256/512/MD5, firma GPG, y SBOM CycloneDX.</li>
+    <li><strong>Dockeriza</strong> — <code>voxen dockerize --tag ghcr.io/user/app:1.0 --push</code> genera una imagen Docker mínima (distroless), multi-architecture, firmada, con labels OCI y SBOM embebido.</li>
+    <li><strong>Publica</strong> — <code>voxen publish</code> o <code>voxen publish:docker</code> sube tu artefacto o imagen a Maven Central, Artifactory, Nexus, S3, Docker Hub, GHCR, ECR o GCR.</li>
+    <li><strong>Despliega</strong> — <code>voxen deploy --profile prod</code> despliega con configuración específica del entorno. Perfiles integrados para dev, staging y producción.</li>
+  </ol>
+</section>
+
+<section>
+  <h2 class="section-title">Ejemplo Rápido</h2>
+  <p class="section-subtitle">De una app Java a una imagen Docker firmada en 3 comandos.</p>
+
+  <pre><code><span style="color: #6b7280;"># 1. Crear e inicializar un proyecto</span>
+mkdir mi-app && cd mi-app
+voxen init -n mi-app -r java -t jar -o build
+
+<span style="color: #6b7280;"># 2. Construir y dockerizar</span>
+voxen build
+voxen dockerize --tag ghcr.io/usuario/mi-app:1.0.0 --lint
+
+<span style="color: #6b7280;"># 3. Publicar imagen multi-architecture firmada</span>
+voxen dockerize --tag ghcr.io/usuario/mi-app:1.0.0 \
+  --push --platform linux/amd64,linux/arm64 --sign --json</code></pre>
+
+  <div class="callout callout-success">
+    <strong>✅ La imagen resultante contiene:</strong> SBOM CycloneDX, checksums SHA-256/512/MD5, firma GPG, labels OCI estándar, y metadatos completos del build — todo sin escribir ni una línea de Dockerfile.
+  </div>
+</section>
+
+<section>
+  <h2 class="section-title">¿Por qué Voxen + Docker?</h2>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="icon">🎯</div>
+      <h3>Menos conceptos</h3>
+      <p>6 comandos vs. 9+ de Docker + Cosign + Trivy + Syft. Un solo tool reemplaza todo el stack de supply chain.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📏</div>
+      <h3>Imágenes mínimas</h3>
+      <p>Distroless por defecto. Sin shells, sin package managers, sin herramientas de build en la imagen final. Menor superficie de ataque.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📋</div>
+      <h3>Trazabilidad nativa</h3>
+      <p>Cada imagen incluye labels con build-id, perfil, runtime, checksums y SBOM. <code>docker inspect</code> te dice todo lo que necesitas saber.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🛡️</div>
+      <h3>Seguridad por defecto</h3>
+      <p>Firma GPG, Cosign keyless, escaneo de vulnerabilidades Trivy, y SLSA provenance — todo configurado en el pipeline de CI/CD.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔌</div>
+      <h3>Extensible por plugins</h3>
+      <p>Añade un nuevo lenguaje implementando la interfaz <code>RuntimePlugin</code> o un nuevo publicador extendiendo <code>Publisher</code>.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🤝</div>
+      <h3>Aliado de Docker</h3>
+      <p>Voxen no compite con Docker. Lo potencia: build → dockerize → push. Docker se queda con lo que hace mejor (runtime aislado).</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+  <p><a href="https://github.com/lownoise/voxen">GitHub</a> &middot; <a href="https://voxen.dev">voxen.dev</a></p>
+</footer>
+
+</body>
+</html>

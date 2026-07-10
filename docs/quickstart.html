@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inicio Rápido — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html" class="active">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Inicio Rápido</h1>
+<p class="section-subtitle">Crea un proyecto, constrúyelo, dockerízalo y publícalo en menos de 5 minutos.</p>
+
+<section>
+  <h2><span class="section-number">1</span> Crear un Proyecto</h2>
+  <pre><code>mkdir mi-app && cd mi-app
+
+# Inicializar con Voxen
+voxen init -n mi-app -r java -t jar -o build</code></pre>
+  <p>Esto crea un archivo <code>voxen.json</code> en el directorio actual:</p>
+  <pre><code>{
+  "name": "mi-app",
+  "runtime": "java",
+  "target": "jar",
+  "output": "build"
+}</code></pre>
+  <div class="callout callout-success">
+    <strong>✅ Archivo validado automáticamente</strong> contra JSON Schema (draft 2020-12). Si falta <code>name</code> o <code>runtime</code>, Voxen te muestra un error claro con sugerencias.
+  </div>
+</section>
+
+<section>
+  <h2><span class="section-number">2</span> Añadir Archivos de Build</h2>
+  <p>Voxen delega la compilación a tu build tool existente. Crea un <code>pom.xml</code> (Maven) o <code>build.gradle.kts</code> (Gradle):</p>
+
+  <h3>Maven (pom.xml)</h3>
+  <pre><code>&lt;project&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;com.ejemplo&lt;/groupId&gt;
+  &lt;artifactId&gt;mi-app&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+  &lt;packaging&gt;jar&lt;/packaging&gt;
+&lt;/project&gt;</code></pre>
+
+  <h3>Gradle (build.gradle.kts)</h3>
+  <pre><code>plugins { id("java-library") }
+group = "com.ejemplo"
+version = "1.0.0"</code></pre>
+</section>
+
+<section>
+  <h2><span class="section-number">3</span> Construir</h2>
+  <pre><code>voxen build</code></pre>
+  <p>Voxen detecta automáticamente Maven o Gradle y ejecuta el build. Cada operación queda registrada en el audit log (<code>.voxen/audit.jsonl</code>).</p>
+</section>
+
+<section>
+  <h2><span class="section-number">4</span> Empaquetar</h2>
+  <pre><code>voxen package</code></pre>
+  <p>Produce el artefacto distribuible. Automáticamente se generan:</p>
+  <ul>
+    <li><strong>Checksums</strong> SHA-256, SHA-512 y MD5</li>
+    <li><strong>Firma GPG</strong> (detach-sign .asc)</li>
+    <li><strong>SBOM</strong> CycloneDX 1.6 JSON</li>
+  </ul>
+  <pre><code>Package created: /home/usuario/mi-app/build/mi-app-1.0.0.jar
+Format: jar
+Size: 4.2 KB
+
+Checksums:
+  SHA-256: a1b2c3... ✓
+  SHA-512: d4e5f6... ✓
+  MD5:     g7h8i9... ✓
+Signed: GPG key ABCD1234 ✓
+SBOM: /app/bom.json ✓</code></pre>
+</section>
+
+<section>
+  <h2><span class="section-number">5</span> Dockerizar</h2>
+  <p>Genera una imagen Docker óptima y mínima con toda la metadata de supply chain:</p>
+  <pre><code>voxen dockerize --tag ghcr.io/usuario/mi-app:1.0.0 --lint</code></pre>
+
+  <div class="callout callout-success">
+    <strong>✅ Imagen generada con:</strong><br>
+    • Base distroless (sin shell, sin package manager)<br>
+    • SBOM CycloneDX en <code>/app/bom.json</code><br>
+    • Labels OCI estándar (created, version, revision, source, title)<br>
+    • Labels Voxen (build-id, profile, runtime, checksums)<br>
+    • Firma GPG como sidecar
+  </div>
+
+  <p>Inspecciona la imagen:</p>
+  <pre><code>docker inspect ghcr.io/usuario/mi-app:1.0.0 --format '{{json .Config.Labels}}' | jq
+
+<span style="color: #6b7280;"># Salida:</span>
+{
+  "org.opencontainers.image.created": "2026-07-10T12:00:00Z",
+  "org.opencontainers.image.version": "1.0.0",
+  "org.opencontainers.image.revision": "abc123d",
+  "org.opencontainers.image.source": "https://github.com/usuario/mi-app",
+  "org.opencontainers.image.title": "mi-app",
+  "voxen.build.id": "b3f1a2c4-...",
+  "voxen.build.profile": "dev",
+  "voxen.build.runtime": "java",
+  "voxen.checksum.sha256": "a1b2c3d4...",
+  "voxen.sbom.filename": "bom.json",
+  "voxen.signed": "true"
+}</code></pre>
+</section>
+
+<section>
+  <h2><span class="section-number">6</span> Publicar Multi-Arquitectura</h2>
+  <pre><code># Publicar para amd64 + arm64, firmado y firmado con Cosign
+voxen dockerize --tag ghcr.io/usuario/mi-app:1.0.0 \
+  --push \
+  --platform linux/amd64,linux/arm64 \
+  --sign --lint --json</code></pre>
+
+  <p>Salida JSON para integrar con CI/CD:</p>
+  <pre><code>{"status":"success","project":"mi-app","tag":"ghcr.io/usuario/mi-app:1.0.0","dockerfile":"/workspace/Dockerfile","pushed":true}</code></pre>
+</section>
+
+<section>
+  <h2><span class="section-number">7</span> Desplegar con Perfiles</h2>
+  <pre><code># Desplegar a desarrollo
+voxen deploy --profile dev
+
+# Desplegar a staging con salida verbose
+voxen deploy --profile staging --verbose
+
+# Desplegar a producción (usa perfil integrado que salta tests)
+voxen deploy --profile prod --json</code></pre>
+
+  <p>Los <strong>perfiles integrados</strong> ajustan variables y settings automáticamente:</p>
+  <table>
+    <tr><th>Perfil</th><th>Variables</th><th>Settings</th></tr>
+    <tr><td>dev</td><td>env=development, debug=true</td><td>verbose=true, skipTests=false</td></tr>
+    <tr><td>staging</td><td>env=staging, optimization=standard</td><td>verbose=false, skipTests=false</td></tr>
+    <tr><td>prod</td><td>env=production, optimization=aggressive</td><td>verbose=false, skipTests=true</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Pipeline CI/CD Completo</h2>
+  <p>Workflow listo para usar en GitHub Actions:</p>
+  <pre><code><span style="color: #6b7280;"># .github/workflows/dockerize.yml (ya incluido en el proyecto)</span>
+name: Build & Dockerize
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '21', distribution: 'temurin' }
+      - run: ./gradlew build
+      - run: |
+          voxen build --profile prod --json
+          voxen dockerize \
+            --tag ghcr.io/${{ github.repository }}:latest \
+            --push --platform linux/amd64,linux/arm64 \
+            --lint --sign --json</code></pre>
+  <p>O usa la <strong>acción reutilizable</strong> incluida:</p>
+  <pre><code>- uses: ./.github/actions/voxen-build-push
+  with:
+    profile: prod
+    tag: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+    push: true
+    sign: true</code></pre>
+</section>
+
+<section>
+  <h2>Próximos Pasos</h2>
+  <ul>
+    <li>Explora todos los <a href="cli.html">comandos del CLI</a></li>
+    <li>Configura <a href="configuration.html">voxen.json</a> a fondo</li>
+    <li>Añade soporte para <a href="plugins.html">otros lenguajes</a></li>
+    <li>Activa <a href="enterprise.html">funciones enterprise</a>: sandboxing, auditoría, SLSA</li>
+  </ul>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

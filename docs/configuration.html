@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html" class="active">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Referencia de Configuración</h1>
+<p class="section-subtitle">Voxen usa <code>voxen.json</code> para la configuración del proyecto y <code>voxen-{perfil}.json</code> para perfiles de entorno.</p>
+
+<section>
+  <h2>Esquema de voxen.json</h2>
+  <p>El archivo de configuración usa JSON Schema (draft 2020-12) para validación. Cada proyecto debe tener <code>name</code> y <code>runtime</code> obligatoriamente.</p>
+
+  <pre><code>{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del proyecto",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9_\\-.]+$"
+    },
+    "runtime": {
+      "type": "string",
+      "description": "Runtime del lenguaje",
+      "minLength": 1,
+      "maxLength": 32
+    },
+    "target": {
+      "type": "string",
+      "description": "Formato de salida (jar, war, zip, tar.gz, wheel)",
+      "maxLength": 32
+    },
+    "output": {
+      "type": "string",
+      "description": "Directorio de salida relativo a la raíz del proyecto",
+      "maxLength": 256,
+      "pattern": "^[a-zA-Z0-9_\\-./]+$"
+    }
+  },
+  "required": ["name", "runtime"],
+  "additionalProperties": false
+}</code></pre>
+</section>
+
+<section>
+  <h2>Campos</h2>
+
+  <div class="cli-grid">
+    <div class="cli-item">
+      <h3><code>name</code> (obligatorio)</h3>
+      <p class="desc">Nombre del proyecto. Se usa en nombres de artefactos, coordenadas de publicación e identificadores de despliegue.</p>
+      <p><code>Tipo: string | Mín: 1 | Máx: 128 | Patrón: ^[a-zA-Z0-9_\-\.]+$</code></p>
+    </div>
+
+    <div class="cli-item">
+      <h3><code>runtime</code> (obligatorio)</h3>
+      <p class="desc">Runtime del lenguaje. Determina qué plugin se usa para build, package, publish, deploy y dockerize.</p>
+      <p><code>Tipo: string | Máx: 32 | Ejemplos: java, kotlin, rust, node, python, go, dotnet</code></p>
+    </div>
+
+    <div class="cli-item">
+      <h3><code>target</code> (opcional)</h3>
+      <p class="desc">Formato de empaquetado. El plugin lo usa para determinar el tipo de artefacto a generar.</p>
+      <p><code>Tipo: string | Máx: 32 | Ejemplos: jar, war, zip, tar.gz, wheel</code></p>
+    </div>
+
+    <div class="cli-item">
+      <h3><code>output</code> (opcional)</h3>
+      <p class="desc">Directorio de salida para los artefactos, relativo a la raíz del proyecto. Por defecto: <code>dist</code>.</p>
+      <p><code>Tipo: string | Máx: 256 | Patrón: ^[a-zA-Z0-9_\-\.\/]+$ | Default: dist</code></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Ejemplos por Lenguaje</h2>
+
+  <h3>Java / Kotlin</h3>
+  <pre><code>{
+  "name": "mi-libreria",
+  "runtime": "java",
+  "target": "jar",
+  "output": "target"
+}</code></pre>
+
+  <h3>Node.js</h3>
+  <pre><code>{
+  "name": "mi-app-web",
+  "runtime": "node",
+  "target": "zip",
+  "output": "dist"
+}</code></pre>
+
+  <h3>Python</h3>
+  <pre><code>{
+  "name": "mi-servicio",
+  "runtime": "python",
+  "target": "wheel",
+  "output": "dist"
+}</code></pre>
+
+  <h3>Go / Rust / .NET</h3>
+  <pre><code>{
+  "name": "mi-binario",
+  "runtime": "go",
+  "target": "bin",
+  "output": "build"
+}</code></pre>
+</section>
+
+<section>
+  <h2>Perfiles de Entorno</h2>
+  <p>Los perfiles permiten definir variables y settings específicos por entorno. Perfiles integrados: <code>dev</code>, <code>staging</code>, <code>prod</code>.</p>
+
+  <h3>Perfiles Integrados</h3>
+  <table>
+    <tr><th>Perfil</th><th>Variables</th><th>Settings</th></tr>
+    <tr><td>dev</td><td>env=development, optimization=none, debug=true</td><td>verbose=true, skipTests=false</td></tr>
+    <tr><td>staging</td><td>env=staging, optimization=standard, debug=false</td><td>verbose=false, skipTests=false</td></tr>
+    <tr><td>prod</td><td>env=production, optimization=aggressive, debug=false</td><td>verbose=false, skipTests=true</td></tr>
+  </table>
+
+  <h3>Perfil Personalizado</h3>
+  <p>Crea un archivo <code>voxen-{nombre}.json</code> en la raíz del proyecto:</p>
+  <pre><code><span style="color: #6b7280;">// voxen-custom.json</span>
+{
+  "name": "custom",
+  "extends": "dev",
+  "variables": {
+    "env": "staging",
+    "optimization": "standard",
+    "db_url": "jdbc:postgresql://staging-db:5432/app"
+  },
+  "settings": {
+    "skipTests": "false",
+    "verbose": "false"
+  }
+}</code></pre>
+
+  <p>Usa el perfil con el flag <code>-p</code> o <code>--profile</code>:</p>
+  <pre><code>voxen build --profile custom
+voxen deploy -p prod --json
+voxen dockerize --tag ghcr.io/user/app:1.0 --profile staging</code></pre>
+</section>
+
+<section>
+  <h2>Credenciales</h2>
+  <p>Las credenciales para registros y repositorios se guardan en <code>~/.voxen/credentials.json</code>:</p>
+  <pre><code>{
+  "docker": {
+    "username": "mi-usuario",
+    "token": "ghp_xxxxxxxxxxxx"
+  },
+  "maven-central": {
+    "token": "maven_xxxxxxxxxxxx"
+  },
+  "artifactory": {
+    "username": "admin",
+    "password": "pass123",
+    "host": "https://artifactory.ejemplo.com"
+  }
+}</code></pre>
+  <p>También se pueden configurar mediante variables de entorno:</p>
+  <pre><code>export DOCKER_TOKEN="ghp_xxxxxxxxxxxx"
+export MAVEN_CENTRAL_TOKEN="maven_xxxxxxxxxxxx"</code></pre>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

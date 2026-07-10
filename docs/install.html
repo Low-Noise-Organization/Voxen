@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instalación — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html" class="active">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Guía de Instalación</h1>
+<p class="section-subtitle">Instala Voxen en tu sistema en menos de 2 minutos.</p>
+
+<section>
+  <h2>Requisitos</h2>
+  <ul>
+    <li><strong>Java 21+</strong> — Voxen requiere Java 21 o superior. Verifica con <code>java --version</code>.</li>
+    <li><strong>Docker</strong> — Necesario para el comando <code>voxen dockerize</code>. Instala <a href="https://docs.docker.com/get-docker/" target="_blank">Docker Desktop</a> o Docker Engine.</li>
+    <li><strong>Cosign (opcional)</strong> — Para firmar imágenes Docker. <code>cosign version</code>.</li>
+    <li><strong>Trivy (opcional)</strong> — Para escanear vulnerabilidades. <code>trivy --version</code>.</li>
+    <li><strong>GPG (opcional)</strong> — Para firmar artefactos. <code>gpg --version</code>.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>💡 Nota:</strong> Los requisitos opcionales solo son necesarios si usas las funciones avanzadas. Para build y dockerizado básico, solo necesitas Java 21+ y Docker.
+  </div>
+</section>
+
+<section>
+  <h2>Opción 1: Descargar JAR</h2>
+  <p>Descarga el JAR más reciente desde GitHub Releases:</p>
+  <pre><code>curl -LO https://github.com/lownoise/voxen/releases/latest/download/voxen.jar
+chmod +x voxen.jar
+alias voxen='java -jar /ruta/completa/voxen.jar'</code></pre>
+  <p>Añade el alias a tu <code>~/.bashrc</code> o <code>~/.zshrc</code> para usarlo en cualquier terminal.</p>
+</section>
+
+<section>
+  <h2>Opción 2: Docker</h2>
+  <p>Usa la imagen oficial de Voxen:</p>
+  <pre><code>docker pull ghcr.io/lownoise/voxen:latest
+alias voxen='docker run --rm -v "$PWD":/workspace ghcr.io/lownoise/voxen:latest'</code></pre>
+  <p>Esta imagen incluye Java 21, Voxen, y todas las herramientas de build.</p>
+</section>
+
+<section>
+  <h2>Opción 3: Binario Nativo</h2>
+  <p>Compilado con GraalVM native-image para inicio instantáneo:</p>
+  <pre><code>curl -LO https://github.com/lownoise/voxen/releases/latest/download/voxen-linux-amd64
+chmod +x voxen-linux-amd64
+sudo mv voxen-linux-amd64 /usr/local/bin/voxen</code></pre>
+  <p>Descarga la versión para tu arquitectura: <code>amd64</code> o <code>arm64</code>.</p>
+</section>
+
+<section>
+  <h2>Opción 4: Compilar desde Código Fuente</h2>
+  <pre><code>git clone https://github.com/lownoise/voxen.git
+cd voxen
+./gradlew build
+java -jar cli/build/libs/cli-*.jar --help
+
+# También puedes generar el fat JAR ejecutable:
+./gradlew :cli:fatJar
+java -jar cli/build/libs/voxen-*.jar --help</code></pre>
+</section>
+
+<section>
+  <h2>Verificar Instalación</h2>
+  <p>Ejecuta el comando <code>info</code> para verificar que todo funciona:</p>
+  <pre><code>voxen info
+
+<span style="color: #6b7280;"># Salida:</span>
+Voxen 0.1.0-SNAPSHOT
+
+Sistema:
+  Java:    21.0.2
+  SO:      Linux (amd64)
+  CPUs:    8
+  Memoria: 1024.0 MB total, 512.0 MB libre
+
+Plugins:
+  java (java) v1.0
+
+Proyecto:
+  Estado:  no inicializado
+  Ruta:    /home/usuario/mi-proyecto
+  Ayuda:   Ejecuta 'voxen init' para crear un proyecto
+  Docker:  docker disponible ✓</code></pre>
+</section>
+
+<section>
+  <h2>Autocompletado en Terminal</h2>
+  <p>Habilita el autocompletado con tabulación para bash o zsh:</p>
+  <pre><code># Generar scripts de completado
+./gradlew generateCompletions
+
+# Activarlos en tu shell
+source build/completions/voxen_completion.bash   # bash
+source build/completions/voxen_completion.zsh    # zsh
+
+# O añádelos a tu .bashrc/.zshrc para que sea permanente
+echo "source $(pwd)/build/completions/voxen_completion.bash" >> ~/.bashrc</code></pre>
+</section>
+
+<section>
+  <h2>Próximos Pasos</h2>
+  <ul>
+    <li><a href="quickstart.html">Inicio Rápido</a> — crea tu primer proyecto en 5 minutos</li>
+    <li><a href="cli.html">Referencia CLI</a> — todos los comandos y opciones</li>
+    <li><a href="configuration.html">Configuración</a> — guía completa de voxen.json</li>
+  </ul>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

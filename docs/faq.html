@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html" class="active">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Preguntas Frecuentes</h1>
+<p class="section-subtitle">Respuestas a las preguntas más comunes sobre Voxen, su arquitectura y uso.</p>
+
+<section>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Qué es Voxen exactamente?</h4>
+    <div class="faq-answer">
+      <p>Voxen es un <strong>orquestador de builds</strong> y <strong>capa de supply chain</strong> para Docker. Proporciona una CLI única y consistente para construir, empaquetar, firmar, generar SBOM, dockerizar y publicar proyectos de cualquier lenguaje. No compite con Docker — lo potencia.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Voxen reemplaza a Maven, Gradle, npm o cargo?</h4>
+    <div class="faq-answer">
+      <p>No. Voxen delega en tus build tools existentes. Cuando ejecutas <code>voxen build</code>, detecta automáticamente si usas Maven, Gradle, npm, cargo, etc. y lo invoca. Voxen es una capa de orquestación que unifica la interfaz, no un reemplazo de los build tools.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Voxen compite con Docker?</h4>
+    <div class="faq-answer">
+      <p><strong>No.</strong> Voxen se sienta <em>delante</em> de Docker. Docker se encarga del runtime aislado y portable. Voxen se encarga de construir el artefacto, generar la imagen Docker óptima (con distroless, SBOM, checksums, firma) y publicarla. Voxen necesita Docker para funcionar. Son herramientas complementarias.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Qué lenguajes soporta Voxen?</h4>
+    <div class="faq-answer">
+      <p>Voxen soporta 6 lenguajes de forma nativa mediante <code>RuntimePlugin</code>: <strong>Java, Kotlin, Node.js, Python, Go, Rust y .NET</strong>. Cada runtime tiene su propia imagen base Docker óptima. Se pueden añadir más lenguajes implementando la interfaz <code>RuntimePlugin</code>.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Qué hace el comando <code>voxen dockerize</code>?</h4>
+    <div class="faq-answer">
+      <p>Genera una imagen Docker a partir del artefacto ya construido. Pero no es un <code>docker build</code> cualquiera: genera automáticamente un Dockerfile óptimo (multi-stage si es necesario, con distroless como base), copia el SBOM, las firmas y los checksums dentro de la imagen, añade 15+ labels OCI y Voxen con toda la trazabilidad del build, y opcionalmente publica la imagen en un registry, la firma con Cosign, y ejecuta un linter de calidad.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Puedo publicar en repositorios privados?</h4>
+    <div class="faq-answer">
+      <p>Sí. Voxen soporta 6 publicadores: <strong>local, Maven Central, Artifactory, Nexus, S3 y Docker</strong> (Docker Hub, GHCR, ECR, GCR). Las credenciales se guardan en <code>~/.voxen/credentials.json</code> o mediante variables de entorno (<code>*_TOKEN</code>, <code>*_HOST</code>).</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Cómo maneja Voxen múltiples entornos?</h4>
+    <div class="faq-answer">
+      <p>Voxen tiene 3 perfiles integrados (<code>dev</code>, <code>staging</code>, <code>prod</code>) con variables y settings preconfigurados. También puedes crear perfiles personalizados con <code>voxen-{nombre}.json</code>. Usa el flag <code>-p</code> / <code>--profile</code> para seleccionar el entorno.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Es seguro para producción?</h4>
+    <div class="faq-answer">
+      <p>Sí. Voxen incluye: firma GPG de artefactos, checksums SHA-256/512/MD5, SBOM CycloneDX, firma Cosign de imágenes Docker, escaneo de vulnerabilidades Trivy, SLSA provenance, sandboxing de plugins, auditoría estructurada de todas las operaciones, y generación de imágenes distroless (mínima superficie de ataque).</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Cómo habilito la salida JSON para CI/CD?</h4>
+    <div class="faq-answer">
+      <p>Añade <code>--json</code> a cualquier comando. Voxen producirá JSON estructurado por stdout y suprimirá los mensajes legibles por humanos. Cada comando tiene su propio esquema JSON documentado en la <a href="cli.html">referencia CLI</a>.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Qué versión de Java necesito?</h4>
+    <div class="faq-answer">
+      <p>Voxen requiere <strong>Java 21 o superior</strong>. Usa features modernas como records, pattern matching, y el HttpClient nativo. Para mejor rendimiento, compila con GraalVM native-image y consigue un binario con inicio en milisegundos.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Cómo habilito el autocompletado en terminal?</h4>
+    <div class="faq-answer">
+      <p>Ejecuta <code>./gradlew generateCompletions</code> para generar scripts de completado para bash y zsh, luego actívalos: <code>source build/completions/voxen_completion.bash</code> (bash) o <code>source build/completions/voxen_completion.zsh</code> (zsh).</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Dónde se guardan los logs y la configuración?</h4>
+    <div class="faq-answer">
+      <p><strong>Audit logs</strong> del proyecto: <code>.voxen/audit.jsonl</code>. <strong>Credenciales</strong> de usuario: <code>~/.voxen/credentials.json</code>. <strong>Telemetría</strong> local: <code>~/.voxen/telemetry.jsonl</code>. <strong>Configuración</strong> del proyecto: <code>voxen.json</code> en la raíz.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Cómo contribuyo a Voxen?</h4>
+    <div class="faq-answer">
+      <p>Voxen es open source bajo licencia Apache 2.0. Puedes contribuir reportando issues, enviando pull requests, escribiendo plugins (runtime, build, o publishers), o mejorando la documentación. Visita el <a href="https://github.com/lownoise/voxen">repositorio de GitHub</a> para las guías de contribución.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Voxen soporta multi-arquitectura?</h4>
+    <div class="faq-answer">
+      <p>Sí. El comando <code>voxen dockerize --platform linux/amd64,linux/arm64</code> usa Docker Buildx para generar imágenes multi-arquitectura. Voxen configura automáticamente QEMU y buildx si es necesario.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <h4 onclick="toggleFaq(this)">¿Puedo usar Voxen sin Docker?</h4>
+    <div class="faq-answer">
+      <p>Sí. Los comandos <code>voxen init</code>, <code>build</code>, <code>package</code>, <code>publish</code> (a repositorios tradicionales) y <code>deploy</code> funcionan sin Docker. Solo <code>voxen dockerize</code> y <code>voxen publish:docker</code> requieren Docker instalado.</p>
+    </div>
+  </div>
+
+</section>
+
+</div>
+
+<script>
+function toggleFaq(header) {
+  header.classList.toggle('open');
+  var answer = header.nextElementSibling;
+  answer.classList.toggle('open');
+}
+</script>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

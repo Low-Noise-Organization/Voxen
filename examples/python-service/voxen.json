@@ -1,0 +1,6 @@
+{
+  "name": "my-python-service",
+  "runtime": "python",
+  "target": "wheel",
+  "output": "dist"
+}

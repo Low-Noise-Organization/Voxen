@@ -1,0 +1,32 @@
+# ---- Build Stage (GraalVM Native) ----
+FROM ghcr.io/graalvm/native-image:21-ol9 AS builder
+WORKDIR /workspace
+
+COPY gradlew gradlew.bat ./
+COPY gradle/ gradle/
+COPY settings.gradle.kts build.gradle.kts ./
+COPY cli/ cli/
+COPY core/ core/
+COPY plugins/ plugins/
+COPY runtime/ runtime/
+COPY packaging/ packaging/
+COPY distribution/ distribution/
+COPY testing/ testing/
+
+RUN ./gradlew build -x javadoc --no-daemon
+
+RUN native-image \
+    -jar /workspace/cli/build/libs/voxen-cli-*.jar \
+    -H:Name=voxen \
+    --enable-url-protocols=https \
+    --enable-all-security-services \
+    --no-fallback \
+    -H:ReflectionConfigurationFiles=/workspace/cli/src/main/resources/reflect-config.json
+
+# ---- Runtime Stage ----
+FROM alpine:3.20
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY --from=builder /workspace/voxen /app/voxen
+ENTRYPOINT ["/app/voxen"]
+CMD ["--help"]

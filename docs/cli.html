@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Referencia CLI — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html" class="active">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Referencia de Comandos CLI</h1>
+<p class="section-subtitle">Todos los comandos, opciones y formatos de salida de Voxen.</p>
+
+<section>
+  <h2>Opciones Globales</h2>
+  <p>Estas opciones están disponibles en todos los comandos:</p>
+  <pre><code>-v, --verbose     Salida detallada
+    --debug       Salida de depuración (más detalle que verbose)
+    --json        Salida JSON para automatización (CI/CD)
+-p, --profile     Perfil de entorno: dev, staging, prod, o personalizado (default: dev)
+    --help        Muestra ayuda del comando
+    --version     Muestra la versión</code></pre>
+</section>
+
+<section>
+  <h2>Comandos</h2>
+
+  <div class="cli-grid">
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen init</span></h3>
+      <p class="desc">Inicializa un nuevo proyecto Voxen creando <code>voxen.json</code>.</p>
+      <pre><code>Opciones:
+  -n, --name &lt;name&gt;        Nombre del proyecto (default: nombre del directorio)
+  -r, --runtime &lt;runtime&gt;  Runtime: java, kotlin, rust, node, python, go, dotnet (default: java)
+  -t, --target &lt;format&gt;    Formato destino: jar, war, zip, tar.gz, wheel
+  -o, --output &lt;dir&gt;       Directorio de salida (default: dist)
+
+Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen init -n mi-app -r java -t war -o build
+  voxen init --json</code></pre>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen build</span></h3>
+      <p class="desc">Construye el proyecto usando el build tool detectado (Maven, Gradle, npm, cargo, etc.).</p>
+      <pre><code>Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen build
+  voxen build --verbose
+  voxen build --json
+  voxen build -p staging</code></pre>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen package</span></h3>
+      <p class="desc">Empaqueta el proyecto en un formato distribuible (JAR, ZIP, wheel, etc.). Genera checksums, firma GPG y SBOM automáticamente.</p>
+      <pre><code>Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen package
+  voxen package --json</code></pre>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen dockerize</span> <span class="tag tag-new">NUEVO</span></h3>
+      <p class="desc">Genera una imagen Docker óptima desde el artefacto construido. Incluye automáticamente SBOM, checksums, firma y labels OCI.</p>
+      <pre><code>Opciones:
+  -t, --tag &lt;tag&gt;           Tag de la imagen (ej. ghcr.io/user/app:1.0.0) (obligatorio)
+      --push                 Publicar la imagen en el registry tras construir
+      --platform &lt;lista&gt;    Plataformas destino (ej. linux/amd64,linux/arm64)
+      --native               Usar entrypoint nativo (GraalVM native-image)
+      --lint                 Ejecutar linter de imagen tras construir
+      --sign                 Firmar la imagen con Cosign (keyless)
+
+Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen dockerize --tag ghcr.io/user/app:1.0.0
+  voxen dockerize --tag ghcr.io/user/app:1.0.0 --push --platform linux/amd64,linux/arm64
+  voxen dockerize --tag ghcr.io/user/app:1.0.0 --sign --lint --json</code></pre>
+      <div class="callout callout-success">
+        <strong>💡 La imagen generada es mínima.</strong> Usa distroless como base (sin shell, sin package manager). Incluye SBOM, checksums SHA-256/512/MD5, firma GPG y 15+ labels de trazabilidad.
+      </div>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen publish</span></h3>
+      <p class="desc">Publica el artefacto en un repositorio configurado (local, Maven Central, Artifactory, Nexus, S3).</p>
+      <pre><code>Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen publish
+  voxen publish --json</code></pre>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen publish:docker</span> <span class="tag tag-new">NUEVO</span></h3>
+      <p class="desc">Publica una imagen Docker en un registry (Docker Hub, GHCR, ECR, GCR).</p>
+      <pre><code>Opciones:
+  -t, --tag &lt;tag&gt;           Tag local a publicar (obligatorio)
+  -r, --registry &lt;url&gt;      Registry destino (ej. ghcr.io/user) (obligatorio)
+  -n, --name &lt;name&gt;        Nombre de la imagen (obligatorio)
+      --version &lt;version&gt;  Tag de versión (default: latest)
+      --platform &lt;lista&gt;   Plataformas para multi-arquitectura
+
+Ejemplos:
+  voxen publish:docker --tag app:1.0 --registry ghcr.io/user --name mi-app
+  voxen publish:docker --tag app:1.0 --registry ghcr.io/user --name mi-app \
+    --platform linux/amd64,linux/arm64</code></pre>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen deploy</span></h3>
+      <p class="desc">Despliega el proyecto en un entorno (dev, staging, prod).</p>
+      <pre><code>Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen deploy
+  voxen deploy --profile staging
+  voxen deploy --profile prod --json</code></pre>
+    </div>
+
+    <div class="cli-item">
+      <h3><span class="cmd">voxen info</span></h3>
+      <p class="desc">Muestra información del sistema, plugins instalados y estado del proyecto.</p>
+      <pre><code>Argumentos:
+  [directorio]              Directorio del proyecto (default: directorio actual)
+
+Ejemplos:
+  voxen info
+  voxen info --json</code></pre>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Formato de Salida JSON</h2>
+  <p>Todos los comandos soportan <code>--json</code> para integración con CI/CD. Cada comando tiene su propio esquema:</p>
+
+  <h3>init</h3>
+  <pre><code>{"status":"success","project":"mi-app","runtime":"java","path":"/home/user/mi-app/voxen.json"}</code></pre>
+
+  <h3>build</h3>
+  <pre><code>{"status":"success","project":"mi-app","durationMs":3250,"artifacts":["build/mi-app-1.0.jar"],"output":"build"}</code></pre>
+
+  <h3>package</h3>
+  <pre><code>{"status":"success","project":"mi-app","path":"build/mi-app-1.0.jar","format":"jar","sizeBytes":4096}</code></pre>
+
+  <h3>dockerize</h3>
+  <pre><code>{"status":"success","project":"mi-app","tag":"ghcr.io/user/app:1.0.0","dockerfile":"/workspace/Dockerfile","pushed":true}</code></pre>
+
+  <h3>publish</h3>
+  <pre><code>{"status":"success","project":"mi-app","repository":"maven-central","url":"https://repo1.maven.org/..."}</code></pre>
+
+  <h3>deploy</h3>
+  <pre><code>{"status":"success","project":"mi-app","environment":"staging","url":"https://staging.mi-app.com"}</code></pre>
+
+  <h3>info</h3>
+  <pre><code>{
+  "version": "0.1.0-SNAPSHOT",
+  "javaVersion": "21.0.2",
+  "os": "Linux",
+  "osArch": "amd64",
+  "processors": 8,
+  "totalMemory": 8388608,
+  "freeMemory": 4194304,
+  "maxMemory": 16777216,
+  "plugins": [{"name":"java","language":"java","apiVersion":"1.0"}],
+  "project": {"status":"initialized","path":"/home/user/mi-app"}
+}</code></pre>
+</section>
+
+<section>
+  <h2>Códigos de Salida</h2>
+  <table>
+    <tr><th>Código</th><th>Significado</th></tr>
+    <tr><td>0</td><td>Éxito</td></tr>
+    <tr><td>1</td><td>Operación fallida (error de build, validación, etc.)</td></tr>
+    <tr><td>2</td><td>Error de uso (argumento inválido, opción obligatoria faltante)</td></tr>
+  </table>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

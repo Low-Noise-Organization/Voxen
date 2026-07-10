@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://voxen.dev/schemas/voxen-config.json",
+  "title": "Voxen Configuration",
+  "description": "Configuration schema for voxen.json — the Voxen project configuration file.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Project name",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9_\\-.]+$"
+    },
+    "runtime": {
+      "type": "string",
+      "description": "Language runtime (e.g. java, kotlin, rust, node, python, go, dotnet)",
+      "minLength": 1,
+      "maxLength": 32
+    },
+    "target": {
+      "type": "string",
+      "description": "Target output format (e.g. jar, war, zip)",
+      "maxLength": 32
+    },
+    "output": {
+      "type": "string",
+      "description": "Output directory relative to project root",
+      "maxLength": 256,
+      "pattern": "^[a-zA-Z0-9_\\-./]+$"
+    }
+  },
+  "required": ["name", "runtime"],
+  "additionalProperties": false
+}

@@ -1,0 +1,6 @@
+{
+  "name": "my-java-library",
+  "runtime": "java",
+  "target": "jar",
+  "output": "target"
+}

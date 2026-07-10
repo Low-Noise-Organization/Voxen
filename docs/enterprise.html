@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise — Voxen</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">voxen<span>.</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="install.html">Instalar</a></li>
+    <li><a href="quickstart.html">Inicio Rápido</a></li>
+    <li><a href="cli.html">CLI</a></li>
+    <li><a href="configuration.html">Config</a></li>
+    <li><a href="plugins.html">Plugins</a></li>
+    <li><a href="enterprise.html" class="active">Enterprise</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+
+<div class="container" style="padding-top: 3rem;">
+
+<h1>Funcionalidades Enterprise</h1>
+<p class="section-subtitle">Voxen proporciona seguridad, trazabilidad y cumplimiento normativo de nivel empresarial para todo el ciclo de vida del software.</p>
+
+<section>
+  <h2>Visión General</h2>
+
+  <div class="enterprise-items">
+
+    <div class="enterprise-item">
+      <h3>🐳 Dockerize — Orquestador de Build + Supply Chain <span class="badge badge-new">NUEVO</span></h3>
+      <p>Voxen <strong>no compite con Docker</strong>. Se sienta delante de Docker y lo potencia: genera imágenes Docker mínimas y óptimas con toda la metadata de supply chain embebida.</p>
+
+      <pre><code># Pipeline completo: build → dockerize → push
+voxen build --profile prod
+voxen dockerize --tag ghcr.io/user/app:1.0.0 --push \
+  --platform linux/amd64,linux/arm64 --lint --sign</code></pre>
+
+      <h4>¿Qué incluye la imagen?</h4>
+      <table>
+        <tr><th>Metadata</th><th>Formato</th><th>¿Dónde?</th></tr>
+        <tr><td>SBOM CycloneDX 1.6</td><td>JSON</td><td><code>/app/bom.json</code> + label</td></tr>
+        <tr><td>Checksums SHA-256/512/MD5</td><td>Labels</td><td><code>voxen.checksum.sha256</code> etc.</td></tr>
+        <tr><td>Firma GPG</td><td>.asc file</td><td><code>/app/artifact.asc</code></td></tr>
+        <tr><td>Firma Cosign (keyless)</td><td>Sigstore</td><td>Registry + <code>cosign verify</code></td></tr>
+        <tr><td>Labels OCI estándar</td><td>Labels</td><td><code>org.opencontainers.image.*</code></td></tr>
+        <tr><td>Labels Voxen</td><td>Labels</td><td><code>voxen.build.*</code>, <code>voxen.checksum.*</code></td></tr>
+        <tr><td>SLSA Provenance</td><td>JSON</td><td>Archivo aparte</td></tr>
+      </table>
+
+      <h4>Inspeccionar la imagen</h4>
+      <pre><code>docker inspect ghcr.io/user/app:1.0.0 --format '{{json .Config.Labels}}' | jq
+{
+  "org.opencontainers.image.created": "2026-07-10T12:00:00Z",
+  "org.opencontainers.image.version": "1.0.0",
+  "org.opencontainers.image.revision": "abc123d",
+  "org.opencontainers.image.source": "https://...",
+  "voxen.build.id": "b3f1a2c4-...",
+  "voxen.build.profile": "prod",
+  "voxen.checksum.sha256": "a1b2c3d4...",
+  "voxen.sbom.filename": "bom.json",
+  "voxen.signed": "true"
+}</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>📋 Trazabilidad Completa</h3>
+      <p>Cada operación queda registrada en un audit log estructurado en <code>.voxen/audit.jsonl</code>.</p>
+
+      <pre><code>{"timestamp":"2026-07-10T12:00:00Z","operation":"build","project":"mi-app","status":"success","detail":"durationMs=3250"}
+{"timestamp":"2026-07-10T12:01:00Z","operation":"dockerize","project":"mi-app","status":"success","detail":"tag=ghcr.io/user/app:1.0, push=true"}
+{"timestamp":"2026-07-10T12:02:00Z","operation":"publish","project":"mi-app","status":"success","detail":"repository=maven-central"}</code></pre>
+
+      <h4>Uso programático</h4>
+      <pre><code>AuditLogger audit = new AuditLogger(projectDir);
+audit.build("mi-app", true, 3250);
+audit.publish("mi-app", true, "maven-central");
+audit.deploy("mi-app", true, "staging");</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>📦 Supply Chain Seguridad</h3>
+
+      <h4>Firma GPG de artefactos</h4>
+      <pre><code>SigningService signer = new SigningService("key-id", "passphrase");
+signer.sign(Path.of("build/mi-app.jar"));
+// Genera: mi-app.jar.asc</code></pre>
+
+      <h4>Checksums automáticos</h4>
+      <pre><code>ChecksumGenerator checksums = new ChecksumGenerator();
+checksums.generate(Path.of("build/mi-app.jar"));
+// Genera: .sha256, .sha512, .md5</code></pre>
+
+      <h4>SBOM CycloneDX</h4>
+      <pre><code>SbomGenerator sbom = new SbomGenerator();
+sbom.generate(projectConfig);
+// Genera: build/bom.json</code></pre>
+
+      <h4>SLSA Provenance</h4>
+      <pre><code>SlsaProvenance slsa = new SlsaProvenance();
+slsa.write(Path.of("build/provenance.json"), metadata);</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>🔒 Firma de Imágenes Docker</h3>
+
+      <h4>Cosign (keyless — recomendado)</h4>
+      <pre><code>ManifestSigner signer = new ManifestSigner();
+signer.signWithCosignKeyless("ghcr.io/user/app:1.0.0");
+# Usa Sigstore (sin necesidad de gestionar claves)</code></pre>
+
+      <h4>Cosign (key-based)</h4>
+      <pre><code>signer.signWithCosign("ghcr.io/user/app:1.0.0", "cosign.key");</code></pre>
+
+      <h4>Docker Content Trust (GPG)</h4>
+      <pre><code>signer.signWithGpg("ghcr.io/user/app:1.0.0", "KEY123", "passphrase");</code></pre>
+
+      <h4>Verificación</h4>
+      <pre><code>signer.verify("ghcr.io/user/app:1.0.0");</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>🔍 Escaneo de Vulnerabilidades</h3>
+      <p>Integración con Trivy para escanear imágenes Docker en busca de CVEs:</p>
+
+      <pre><code>VulnerabilityScanner scanner = new VulnerabilityScanner();
+VulnerabilityScanner.ScanResult result = scanner.scan("ghcr.io/user/app:1.0.0");
+
+if (!result.passed()) {
+    System.err.println("¡Vulnerabilidades críticas encontradas!");
+    result.vulnerabilities().forEach(v ->
+        System.out.println(v.scanner() + ": " + v.severity()));
+}</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>🔍 Linter de Imágenes</h3>
+      <p>Analiza la imagen Docker generada y reporta problemas de calidad:</p>
+
+      <pre><code>ImageLinter linter = new ImageLinter();
+ImageLinter.LintResult result = linter.lint("ghcr.io/user/app:1.0.0");
+
+// Errores: imagen no encontrada
+// Advertencias:
+//   - Tamaño excesivo (>500MB)
+//   - Demasiadas capas (>10)
+//   - Ejecución como root
+//   - Sin puertos expuestos
+//   - Sin etiquetas
+//   - SBOM faltante</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>🏢 Multi-Entorno</h3>
+      <p>Tres perfiles integrados (dev, staging, prod) más perfiles personalizados mediante archivos <code>voxen-{nombre}.json</code>.</p>
+      <pre><code>voxen build --profile dev        # debug=true, verbose=true
+voxen dockerize --profile staging  # sin debug, optimización estándar
+voxen deploy -p prod --json       # salta tests, optimización agresiva</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>🛡️ Plugin Sandboxing</h3>
+      <p>Aislamiento de plugins mediante Java SecurityManager. Restringe acceso a archivos, red y propiedades del sistema.</p>
+      <pre><code>PluginSandbox sandbox = new PluginSandbox(true);
+sandbox.applyIfEnabled("mi-plugin", Path.of("/ruta/al/plugin"));</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>📊 Telemetría (opt-in)</h3>
+      <p>Métricas locales de operaciones, tiempos de ejecución y tasas de éxito/fallo. Almacenadas en <code>~/.voxen/telemetry.jsonl</code>.</p>
+      <pre><code>TelemetryCollector telemetry = new TelemetryCollector(true); // opt-in
+
+String opId = "build-" + System.currentTimeMillis();
+telemetry.startOperation(opId, "build", "mi-app");
+// ... realizar build ...
+telemetry.finishOperation(opId, true, "durationMs=3250");
+
+System.out.println("Total: " + telemetry.totalOperations());
+System.out.println("Fallos: " + telemetry.failedOperations());</code></pre>
+    </div>
+
+    <div class="enterprise-item">
+      <h3>🤖 CI/CD Integrado</h3>
+      <p>Workflows oficiales de GitHub Actions y acción reutilizable:</p>
+
+      <pre><code><span style="color: #6b7280;"># Usando la acción oficial</span>
+- uses: ./.github/actions/voxen-build-push
+  with:
+    profile: prod
+    tag: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+    push: true
+    platforms: linux/amd64,linux/arm64
+    sign: true</code></pre>
+
+      <pre><code><span style="color: #6b7280;"># Workflow completo con escaneo y firma</span>
+name: Build & Dockerize
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '21', distribution: 'temurin' }
+      - run: ./gradlew build
+      - run: |
+          voxen build --profile prod --json
+          voxen dockerize \
+            --tag ghcr.io/${{ github.repository }}:latest \
+            --push --platform linux/amd64,linux/arm64 \
+            --lint --sign --json
+      - uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:latest</code></pre>
+    </div>
+
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>Voxen — Plataforma Universal de Empaquetado y Supply Chain. Apache 2.0.</p>
+</footer>
+
+</body>
+</html>

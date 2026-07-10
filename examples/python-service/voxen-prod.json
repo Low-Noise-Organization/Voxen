@@ -1,0 +1,12 @@
+{
+  "name": "my-python-service",
+  "variables": {
+    "env": "production",
+    "optimization": "aggressive",
+    "debug": "false"
+  },
+  "settings": {
+    "skipTests": "true",
+    "verbose": "false"
+  }
+}
