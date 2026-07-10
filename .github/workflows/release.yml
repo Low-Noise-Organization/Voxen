@@ -48,7 +48,7 @@ jobs:
       - name: Generate SBOM
         run: |
           ./gradlew generateCompletions --no-daemon
-          java -jar cli/build/libs/voxen-*.jar info --json
+          java -jar cli/build/libs/voxen-*.jar --json info
         shell: bash
 
       - name: Build and push Docker image
