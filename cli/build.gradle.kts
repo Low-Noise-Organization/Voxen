@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":plugins:api"))
     implementation("info.picocli:picocli:4.7.6")
     annotationProcessor("info.picocli:picocli-codegen:4.7.6")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.1")
 }
 
 tasks.jar {
