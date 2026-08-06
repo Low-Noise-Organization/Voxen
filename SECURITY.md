@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-Report security vulnerabilities to **security@lownoise.io**.
+Report security vulnerabilities to **contact.lownoise+securityVoxen@gmail.com**.
 
 Do **not** report security vulnerabilities via public GitHub issues.
 
