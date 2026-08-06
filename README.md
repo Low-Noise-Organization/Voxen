@@ -99,4 +99,4 @@ Apache 2.0 — [LICENSE](LICENSE).
 
 ## Seguridad
 
-Reportar vulnerabilidades a security@lownoise.io — [SECURITY.md](SECURITY.md).
+Reportar vulnerabilidades a contact.lownoise+securityVoxen@gmail.com — [SECURITY.md](SECURITY.md).
