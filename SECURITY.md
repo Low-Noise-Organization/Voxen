@@ -35,7 +35,7 @@ Supported versions: Latest stable release and the previous minor version.
 
 We follow coordinated disclosure:
 
-1. Reporter notifies security@lownoise.io
+1. Reporter notifies contact.lownoise+securityVoxen@gmail.com
 2. We investigate and develop a fix
 3. Fix is released and announced
 4. Vulnerability is publicly disclosed after 90 days or when a fix is available
