@@ -4,8 +4,8 @@ dependencies {
     implementation(project(":distribution"))
     implementation(project(":docker"))
     implementation(project(":plugins:api"))
-    implementation("info.picocli:picocli:4.7.6")
-    annotationProcessor("info.picocli:picocli-codegen:4.7.6")
+    implementation("info.picocli:picocli:4.7.7")
+    annotationProcessor("info.picocli:picocli-codegen:4.7.7")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
 }
 
