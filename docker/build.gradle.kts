@@ -3,5 +3,5 @@ dependencies {
     implementation(project(":runtime"))
     implementation(project(":distribution"))
     implementation(project(":plugins:api"))
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.1")
 }
